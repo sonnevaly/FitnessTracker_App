@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
-import '../utils/app_text_styles.dart';
 
 class WeeklyStatsCard extends StatelessWidget {
   final int totalRuns;
@@ -19,110 +18,77 @@ class WeeklyStatsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Row(
             children: [
-              Icon(Icons.calendar_today, color: AppColors.primary, size: 24),
-              const SizedBox(width: 12),
+              Icon(Icons.calendar_today_outlined, color: AppColors.primary, size: 20),
+              SizedBox(width: 8),
               Text(
                 'This Week',
-                style: AppTextStyles.h2,
-              ),
-            ],
-          ),
-          
-          const SizedBox(height: 20),
-          
-          // Stats Grid - Row 1
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatItem(
-                  'Total Runs',
-                  '$totalRuns',
-                  Icons.directions_run,
-                  AppColors.primary,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatItem(
-                  'Distance',
-                  '${totalDistance.toStringAsFixed(1)} km',
-                  Icons.straighten,
-                  AppColors.success,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textDark,
                 ),
               ),
             ],
           ),
-          
-          const SizedBox(height: 12),
-          
-          // Stats Grid - Row 2
+          SizedBox(height: 20),
           Row(
             children: [
-              Expanded(
-                child: _buildStatItem(
-                  'Duration',
-                  totalDuration,
-                  Icons.timer,
-                  AppColors.warning,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatItem(
-                  'Avg Pace',
-                  '$averagePace/km',
-                  Icons.speed,
-                  AppColors.info,
-                ),
-              ),
+              Expanded(child: _buildStat('Runs', '$totalRuns', Icons.directions_run)),
+              Expanded(child: _buildStat('Distance', '${totalDistance.toStringAsFixed(1)} km', Icons.straighten)),
+            ],
+          ),
+          SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(child: _buildStat('Duration', totalDuration, Icons.timer)),
+              Expanded(child: _buildStat('Avg Pace', '$averagePace/km', Icons.speed)),
             ],
           ),
         ],
       ),
     );
   }
-  
-  Widget _buildStatItem(String label, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: AppTextStyles.h2.copyWith(color: color),
+
+  Widget _buildStat(String label, String value, IconData icon) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20, color: AppColors.textSecondary),
+        SizedBox(height: 8),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textDark,
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: AppTextStyles.caption,
-            textAlign: TextAlign.center,
+        ),
+        SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: AppColors.textSecondary,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

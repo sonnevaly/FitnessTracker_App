@@ -1,58 +1,63 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
-import '../utils/app_text_styles.dart';
 
 class StatCard extends StatelessWidget {
   final String label;
   final String value;
   final IconData icon;
-  final Color? color;
+  final Color color;
+  final Gradient? gradient;
 
   const StatCard({
     Key? key,
     required this.label,
     required this.value,
     required this.icon,
-    this.color,
+    this.color = AppColors.primary,
+    this.gradient,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                label,
-                style: AppTextStyles.statLabel,
-              ),
-              Icon(
-                icon,
-                size: 20,
-                color: color ?? AppColors.primary,
-              ),
-            ],
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: gradient ?? LinearGradient(colors: [color, color]),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: Colors.white, size: 24),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 16),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          SizedBox(height: 4),
           Text(
             value,
-            style: AppTextStyles.statValue.copyWith(
-              color: color ?? AppColors.primary,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              color: color,
             ),
           ),
         ],

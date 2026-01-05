@@ -39,7 +39,7 @@ class RunTrackingProvider extends ChangeNotifier {
   }
   
   // Start run method
-  void startRun() {
+  Future<void> startRun() async {
     _isRunning = true;
     _isPaused = false;
     _duration = 0;
@@ -72,15 +72,24 @@ class RunTrackingProvider extends ChangeNotifier {
   }
   
   // Stop run method
-  void stopRun() {
+  Future<void> stopRun(int rpe) async {
     _timer?.cancel();
-    _isRunning = false;
-    _isPaused = false;
+    
+    // 🧠 Capture final session data BEFORE reset
+    final sessionData = {
+      'duration': _duration,
+      'distance': _distance,
+      'rpe': rpe,
+      'date': DateTime.now().toIso8601String(),
+    };
     
     // TODO Day 5: Save to database
-    // await _databaseService.insertSession(...);
+    // await DatabaseService.saveSession(sessionData);
+    print('Session saved: $sessionData'); // For debugging
     
-    // Reset for next run
+    // 🔄 Reset state for next run
+    _isRunning = false;
+    _isPaused = false;
     _duration = 0;
     _distance = 0.0;
     
