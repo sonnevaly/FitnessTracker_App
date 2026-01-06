@@ -85,7 +85,7 @@ class FriendlySuggestionCard extends StatelessWidget {
     if (hour >= 5 && hour < 11) {
       if (totalRuns == 0) {
         return _Suggestion(
-          title: 'Good Morning, Runner! 🌅',
+          title: 'Good Morning, Runner!',
           message: 'Perfect weather for a morning run. Start your day strong!',
           icon: Icons.wb_sunny,
           color: Color(0xFFFFA726),

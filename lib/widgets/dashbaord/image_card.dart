@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
-
 class HeroImageCard extends StatelessWidget {
   const HeroImageCard({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        DefaultTabController.of(context)?.animateTo(1);
-      },
       child: Container(
         height: 200,
         decoration: BoxDecoration(

@@ -21,7 +21,7 @@ class DashboardHeader extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    'Hello, Runner',
+                    'Hello, User',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
@@ -29,7 +29,9 @@ class DashboardHeader extends StatelessWidget {
                     ),
                   ),
                   SizedBox(width: 12),
-                  Icon(Icons.notifications_outlined),
+                  IconButton(
+                    onPressed: () {},
+                    icon: Icon(Icons.notifications_outlined),)
                 ],
               ),
             ],

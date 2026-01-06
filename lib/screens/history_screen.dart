@@ -37,22 +37,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    IconButton(
-                      icon: Icon(Icons.arrow_back),
-                      onPressed: () {},
-                    ),
                     Text(
                       'Run History',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 21,
                         fontWeight: FontWeight.w600,
+                        height: 2,
                       ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.tune),
-                      onPressed: () {},
                     ),
                   ],
                 ),

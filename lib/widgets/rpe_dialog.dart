@@ -71,8 +71,6 @@ class _RPEDialogState extends State<RPEDialog> {
             ),
             
             SizedBox(height: 40),
-            
-            // Large RPE number with gradient background
             Container(
               width: 140,
               height: 140,
@@ -193,8 +191,7 @@ class _RPEDialogState extends State<RPEDialog> {
                     height: 52,
                     child: ElevatedButton(
                       onPressed: () {
-                        widget.onSave(_selectedRPE);  // ✅ Call callback
-                        // ❌ REMOVED: Navigator.pop(context) - Let screen handle it!
+                        widget.onSave(_selectedRPE);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.cardDark,
