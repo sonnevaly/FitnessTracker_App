@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // Primary Brand Colors - Dark Theme
-  static const Color primary = Color(0xFF6366F1); // Indigo
+  static const Color primary = Color(0xFF6366F1);
   static const Color primaryDark = Color(0xFF4F46E5);
   static const Color primaryLight = Color(0xFF818CF8);
   
@@ -26,6 +26,7 @@ class AppColors {
   static const Color error = Color(0xFFEF4444);
   static const Color errorLight = Color(0xFFF87171);
   static const Color info = Color(0xFF3B82F6);
+  static const Color accent = Color(0xFFFF6B6B);
   
   // Gradients
   static const LinearGradient primaryGradient = LinearGradient(
