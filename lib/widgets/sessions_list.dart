@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
-import '../models/mock_sessions.dart';
+import '../models/running_session.dart';
 
 class SessionsList extends StatelessWidget {
-  final List<MockSession> sessions;
+  final List<RunningSession> sessions;
   final Function(String) onDelete;
-  final Function(MockSession) onTap;
+  final Function(RunningSession) onTap;
 
   const SessionsList({
     Key? key,
@@ -17,142 +17,55 @@ class SessionsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (sessions.isEmpty) {
-      return _buildEmptyState();
+      return const Center(
+        child: Text(
+          'No runs recorded yet.',
+          style: TextStyle(color: Colors.grey),
+        ),
+      );
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(20),
       itemCount: sessions.length,
       itemBuilder: (context, index) {
         final session = sessions[index];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: _buildSessionCard(context, session),
+
+        return Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: _getRPEColor(session.rpe),
+              child: Text(
+                session.rpe.toString(),
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+            title: Text(
+              '${session.distanceInKm.toStringAsFixed(2)} km',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Text(
+              '${_formatDuration(session.durationInSeconds)} • ${_formatDate(session.date)}',
+            ),
+            trailing: IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: () => onDelete(session.id),
+            ),
+            onTap: () => onTap(session),
+          ),
         );
       },
     );
   }
 
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.inbox_outlined,
-            size: 64,
-            color: AppColors.textSecondary.withOpacity(0.5),
-          ),
-          SizedBox(height: 16),
-          Text(
-            'No runs yet',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textDark,
-            ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Start your first run to see it here',
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ],
-      ),
-    );
+  String _formatDuration(int seconds) {
+    int minutes = seconds ~/ 60;
+    int sec = seconds % 60;
+    return '$minutes:${sec.toString().padLeft(2, '0')}';
   }
 
-  Widget _buildSessionCard(BuildContext context, MockSession session) {
-    return Dismissible(
-      key: Key(session.id),
-      direction: DismissDirection.endToStart,
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        decoration: BoxDecoration(
-          color: AppColors.error,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Icon(Icons.delete_outline, color: Colors.white, size: 28),
-      ),
-      onDismissed: (direction) => onDelete(session.id),
-      child: GestureDetector(
-        onTap: () => onTap(session),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 10,
-                offset: Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.directions_run,
-                  color: AppColors.cardDark,
-                  size: 28,
-                ),
-              ),
-              SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${session.distance.toStringAsFixed(2)} km run',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textDark,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      '${session.formattedDuration} • ${session.formattedDate}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: _getRPEColor(session.rpe).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'RPE ${session.rpe}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: _getRPEColor(session.rpe),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
   }
 
   Color _getRPEColor(int rpe) {

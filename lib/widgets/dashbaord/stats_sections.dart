@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
 import '../../providers/dashboard_provider.dart';
+import '../../models/weekly_stats.dart';
 import 'filter.dart';
 import 'suggestion.dart';
 import 'weekly_insight.dart';
@@ -39,7 +40,7 @@ class StatsSection extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
+                const Text(
                   'Your Progress',
                   style: TextStyle(
                     fontSize: 20,
@@ -62,63 +63,67 @@ class StatsSection extends StatelessWidget {
               ],
             ),
           ),
-          
-          SizedBox(height: 16),
-          
+          const SizedBox(height: 16),
           FilterChips(
             selectedPeriod: selectedPeriod,
             onPeriodChanged: onPeriodChanged,
           ),
-          
-          SizedBox(height: 24),
-          
+          const SizedBox(height: 24),
           if (stats != null) ...[
+            // Suggestion card
             FriendlySuggestionCard(
-              totalRuns: stats!.totalRuns,
+              totalRuns: stats!.numberOfRuns,
               totalDistance: stats!.totalDistance,
               selectedPeriod: selectedPeriod,
             ),
-            
-            SizedBox(height: 16),
-            
+            const SizedBox(height: 16),
+
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
                 children: [
+                  // Total runs
                   StatCardWithGraph(
                     title: 'Total Runs',
-                    subtitle: _getSubtitle('runs', stats!.totalRuns),
-                    value: stats!.totalRuns,
+                    subtitle: _getSubtitle('runs', stats!.numberOfRuns),
+                    value: stats!.numberOfRuns,
                     icon: Icons.directions_run,
                     chart: RunsBarChart(period: selectedPeriod),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
+
+                  // Distance
                   StatCardWithGraph(
                     title: 'Distance',
-                    subtitle: _getSubtitle('km', stats!.totalDistance.toStringAsFixed(1)),
+                    subtitle: _getSubtitle(
+                      'km',
+                      stats!.totalDistance.toStringAsFixed(1),
+                    ),
                     value: stats!.totalDistance.toStringAsFixed(1),
                     icon: Icons.straighten,
                     chart: DistanceLineChart(period: selectedPeriod),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
+
+                  // Duration
                   StatCardWithGraph(
                     title: 'Duration',
-                    subtitle: stats!.totalDuration,
-                    value: stats!.totalDuration,
+                    subtitle: stats!.formattedTotalDuration,
+                    value: stats!.formattedTotalDuration,
                     icon: Icons.timer,
                     chart: DurationBarChart(period: selectedPeriod),
                   ),
                 ],
               ),
             ),
-            
-            SizedBox(height: 24),
-            
+            const SizedBox(height: 24),
+
+            // Weekly insight
             if (selectedPeriod == 'This Week')
               WeeklyInsightsCard(
-                totalRuns: stats!.totalRuns,
+                totalRuns: stats!.numberOfRuns,
                 totalDistance: stats!.totalDistance,
-                totalDuration: stats!.totalDuration,
+                totalDuration: stats!.formattedTotalDuration,
               ),
           ],
         ],
