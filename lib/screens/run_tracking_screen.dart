@@ -1,10 +1,10 @@
-import 'package:fitness_tracker/screens/dashboard_screen.dart';
-import 'package:fitness_tracker/widgets/dashbaord/dashboard_header.dart';
+import 'package:fitness_tracker/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/run_tracking_provider.dart';
 import '../utils/app_colors.dart';
 import '../widgets/rpe_dialog.dart';
+
 class RunTrackingScreen extends StatelessWidget {
   const RunTrackingScreen({Key? key}) : super(key: key);
 
@@ -22,15 +22,29 @@ class RunTrackingScreen extends StatelessWidget {
               children: [
                 // Header
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    IconButton(
+                      icon: Icon(Icons.arrow_back),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const MainScreen(),
+                          ),
+                        );
+                      },
+                    ),
                     Text(
                       'Track Run',
                       style: TextStyle(
-                        fontSize: 21,
+                        fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        height: 2,
                       ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.more_vert),
+                      onPressed: () {},
                     ),
                   ],
                 ),

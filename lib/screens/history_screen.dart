@@ -1,9 +1,10 @@
+import 'package:fitness_tracker/screens/dashboard_screen.dart';
+import 'package:fitness_tracker/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/history_provider.dart';
 import '../utils/app_colors.dart';
 import '../widgets/session_detail_dialog.dart';
-
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({Key? key}) : super(key: key);
 
@@ -37,15 +38,29 @@ class _HistoryScreenState extends State<HistoryScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    IconButton(
+                      icon: Icon(Icons.arrow_back),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const MainScreen(),
+                          ),
+                        );
+                      },
+                    ),
                     Text(
                       'Run History',
                       style: TextStyle(
-                        fontSize: 21,
+                        fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        height: 2,
                       ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.tune),
+                      onPressed: () {},
                     ),
                   ],
                 ),
