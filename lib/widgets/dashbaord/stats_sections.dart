@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
 import '../../models/weekly_stats.dart';
+import '../../screens/history_screen.dart';
 import 'filter.dart';
 import 'suggestion.dart';
 import 'weekly_insight.dart';
@@ -22,11 +23,7 @@ class StatsSection extends StatelessWidget {
   }) : super(key: key);
 
   String _getSubtitle(String unit, dynamic value) {
-    if (selectedPeriod == 'This Week') {
-      return '$value $unit this week';
-    } else {
-      return '$value $unit this month';
-    }
+    return '$value $unit this week';
   }
 
   @override
@@ -49,7 +46,12 @@ class StatsSection extends StatelessWidget {
                 ),
                 TextButton(
                   onPressed: () {
-                    DefaultTabController.of(context)?.animateTo(2);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const HistoryScreen(),
+                      ),
+                    );
                   },
                   child: Text(
                     'See All',
@@ -69,29 +71,24 @@ class StatsSection extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           if (stats != null) ...[
-            // Suggestion card
             FriendlySuggestionCard(
               totalRuns: stats!.numberOfRuns,
               totalDistance: stats!.totalDistance,
               selectedPeriod: selectedPeriod,
             ),
             const SizedBox(height: 16),
-
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
                 children: [
-                  // Total runs
                   StatCardWithGraph(
                     title: 'Total Runs',
                     subtitle: _getSubtitle('runs', stats!.numberOfRuns),
                     value: stats!.numberOfRuns,
                     icon: Icons.directions_run,
-                    chart: const RunsBarChart(), // ✅ FIXED
+                    chart: const RunsBarChart(),
                   ),
                   const SizedBox(height: 16),
-
-                  // Distance
                   StatCardWithGraph(
                     title: 'Distance',
                     subtitle: _getSubtitle(
@@ -100,30 +97,25 @@ class StatsSection extends StatelessWidget {
                     ),
                     value: stats!.totalDistance.toStringAsFixed(1),
                     icon: Icons.straighten,
-                    chart: const DistanceLineChart(), // ✅ FIXED
+                    chart: const DistanceLineChart(),
                   ),
                   const SizedBox(height: 16),
-
-                  // Duration
                   StatCardWithGraph(
                     title: 'Duration',
                     subtitle: stats!.formattedTotalDuration,
                     value: stats!.formattedTotalDuration,
                     icon: Icons.timer,
-                    chart: const DurationBarChart(), // ✅ FIXED
+                    chart: const DurationBarChart(),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
-
-            // Weekly insight
-            if (selectedPeriod == 'This Week')
-              WeeklyInsightsCard(
-                totalRuns: stats!.numberOfRuns,
-                totalDistance: stats!.totalDistance,
-                totalDuration: stats!.formattedTotalDuration,
-              ),
+            WeeklyInsightsCard(
+              totalRuns: stats!.numberOfRuns,
+              totalDistance: stats!.totalDistance,
+              totalDuration: stats!.formattedTotalDuration,
+            ),
           ],
         ],
       ),
