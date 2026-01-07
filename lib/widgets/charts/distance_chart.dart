@@ -1,130 +1,54 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
-import '../../utils/app_colors.dart';
+import 'package:provider/provider.dart';
+import '../../../providers/dashboard_provider.dart';
 
 class DistanceLineChart extends StatelessWidget {
-  final String period;
-
-  const DistanceLineChart({
-    Key? key,
-    required this.period,
-  }) : super(key: key);
+  const DistanceLineChart({super.key});
 
   @override
   Widget build(BuildContext context) {
-    if (period == 'This Month') {
-      return _buildMonthlyChart();
+    final provider = context.watch<DashboardProvider>();
+    final sessions = provider.recentSessions;
+
+    // Sum distance per day
+    final List<double> distancePerDay = List.filled(7, 0.0);
+
+    for (var s in sessions) {
+      final day = s.date.weekday - 1;
+      if (day >= 0 && day < 7) {
+        distancePerDay[day] += s.distanceInKm;
+      }
     }
-    return _buildWeeklyChart();
-  }
 
-  Widget _buildWeeklyChart() {
-    return LineChart(
-      LineChartData(
-        gridData: FlGridData(show: false),
-        titlesData: FlTitlesData(
-          show: true,
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (value, meta) {
-                const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-                if (value.toInt() >= 0 && value.toInt() < days.length) {
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Text(
-                      days[value.toInt()],
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  );
-                }
-                return Text('');
-              },
-            ),
-          ),
-          leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        ),
-        borderData: FlBorderData(show: false),
-        lineBarsData: [
-          LineChartBarData(
-            spots: [
-              FlSpot(0, 3),
-              FlSpot(1, 5),
-              FlSpot(2, 2),
-              FlSpot(3, 0),
-              FlSpot(4, 4),
-              FlSpot(5, 0),
-              FlSpot(6, 0),
-            ],
-            isCurved: true,
-            color: AppColors.success,
-            barWidth: 3,
-            dotData: FlDotData(show: true),
-            belowBarData: BarAreaData(
-              show: true,
-              color: AppColors.success.withOpacity(0.1),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+    final maxValue = distancePerDay.reduce((a, b) => a > b ? a : b);
 
-  Widget _buildMonthlyChart() {
-    return LineChart(
-      LineChartData(
-        gridData: FlGridData(show: false),
-        titlesData: FlTitlesData(
-          show: true,
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (value, meta) {
-                const weeks = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-                if (value.toInt() >= 0 && value.toInt() < weeks.length) {
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Text(
-                      weeks[value.toInt()],
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  );
-                }
-                return Text('');
-              },
+    return SizedBox(
+      height: 120,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: List.generate(7, (i) {
+          final v = distancePerDay[i];
+          final h = maxValue == 0 ? 4.0 : (v / maxValue) * 80 + 4;
+
+          return Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Container(
+                  width: 10,
+                  height: h,
+                  decoration: BoxDecoration(
+                    color: Colors.green,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][i],
+                    style: const TextStyle(fontSize: 10)),
+              ],
             ),
-          ),
-          leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        ),
-        borderData: FlBorderData(show: false),
-        lineBarsData: [
-          LineChartBarData(
-            spots: [
-              FlSpot(0, 12),
-              FlSpot(1, 18),
-              FlSpot(2, 15),
-              FlSpot(3, 10),
-            ],
-            isCurved: true,
-            color: AppColors.success,
-            barWidth: 3,
-            dotData: FlDotData(show: true),
-            belowBarData: BarAreaData(
-              show: true,
-              color: AppColors.success.withOpacity(0.1),
-            ),
-          ),
-        ],
+          );
+        }),
       ),
     );
   }

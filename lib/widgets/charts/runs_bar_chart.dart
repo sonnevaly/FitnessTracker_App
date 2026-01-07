@@ -1,112 +1,52 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
-import '../../utils/app_colors.dart';
+import 'package:provider/provider.dart';
+import '../../../providers/dashboard_provider.dart';
 
 class RunsBarChart extends StatelessWidget {
-  final String period;
-
-  const RunsBarChart({
-    Key? key,
-    required this.period,
-  }) : super(key: key);
+  const RunsBarChart({super.key});
 
   @override
   Widget build(BuildContext context) {
-    if (period == 'This Month') {
-      return _buildMonthlyChart();
+    final provider = context.watch<DashboardProvider>();
+    final sessions = provider.recentSessions;
+
+    // Count runs per weekday (Mon-Sun)
+    final List<int> runsPerDay = List.filled(7, 0);
+
+    for (var s in sessions) {
+      final weekday = s.date.weekday - 1; // Mon=0
+      if (weekday >= 0 && weekday < 7) {
+        runsPerDay[weekday]++;
+      }
     }
-    return _buildWeeklyChart();
-  }
 
-  Widget _buildWeeklyChart() {
-    return BarChart(
-      BarChartData(
-        alignment: BarChartAlignment.spaceAround,
-        maxY: 3,
-        barTouchData: BarTouchData(enabled: false),
-        titlesData: FlTitlesData(
-          show: true,
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (value, meta) {
-                const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-                if (value.toInt() >= 0 && value.toInt() < days.length) {
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Text(
-                      days[value.toInt()],
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  );
-                }
-                return Text('');
-              },
-            ),
-          ),
-          leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        ),
-        gridData: FlGridData(show: false),
-        borderData: FlBorderData(show: false),
-        barGroups: [
-          BarChartGroupData(x: 0, barRods: [BarChartRodData(toY: 1, color: AppColors.cardDark, width: 12)]),
-          BarChartGroupData(x: 1, barRods: [BarChartRodData(toY: 2, color: AppColors.cardDark, width: 12)]),
-          BarChartGroupData(x: 2, barRods: [BarChartRodData(toY: 1, color: AppColors.cardDark, width: 12)]),
-          BarChartGroupData(x: 3, barRods: [BarChartRodData(toY: 0, color: AppColors.cardDark.withOpacity(0.3), width: 12)]),
-          BarChartGroupData(x: 4, barRods: [BarChartRodData(toY: 1, color: AppColors.cardDark, width: 12)]),
-          BarChartGroupData(x: 5, barRods: [BarChartRodData(toY: 0, color: AppColors.cardDark.withOpacity(0.3), width: 12)]),
-          BarChartGroupData(x: 6, barRods: [BarChartRodData(toY: 0, color: AppColors.cardDark.withOpacity(0.3), width: 12)]),
-        ],
-      ),
-    );
-  }
+    return SizedBox(
+      height: 120,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: List.generate(7, (i) {
+          final value = runsPerDay[i];
+          final height = value == 0 ? 4.0 : value * 20.0;
 
-  Widget _buildMonthlyChart() {
-    return BarChart(
-      BarChartData(
-        alignment: BarChartAlignment.spaceAround,
-        maxY: 8,
-        barTouchData: BarTouchData(enabled: false),
-        titlesData: FlTitlesData(
-          show: true,
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (value, meta) {
-                const weeks = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-                if (value.toInt() >= 0 && value.toInt() < weeks.length) {
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Text(
-                      weeks[value.toInt()],
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  );
-                }
-                return Text('');
-              },
+          return Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Container(
+                  width: 10,
+                  height: height,
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][i],
+                    style: const TextStyle(fontSize: 10)),
+              ],
             ),
-          ),
-          leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        ),
-        gridData: FlGridData(show: false),
-        borderData: FlBorderData(show: false),
-        barGroups: [
-          BarChartGroupData(x: 0, barRods: [BarChartRodData(toY: 4, color: AppColors.cardDark, width: 16)]),
-          BarChartGroupData(x: 1, barRods: [BarChartRodData(toY: 6, color: AppColors.cardDark, width: 16)]),
-          BarChartGroupData(x: 2, barRods: [BarChartRodData(toY: 5, color: AppColors.cardDark, width: 16)]),
-          BarChartGroupData(x: 3, barRods: [BarChartRodData(toY: 3, color: AppColors.cardDark, width: 16)]),
-        ],
+          );
+        }),
       ),
     );
   }

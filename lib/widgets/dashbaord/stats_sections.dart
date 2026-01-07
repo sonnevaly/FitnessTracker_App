@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
-import '../../providers/dashboard_provider.dart';
 import '../../models/weekly_stats.dart';
 import 'filter.dart';
 import 'suggestion.dart';
@@ -88,7 +87,7 @@ class StatsSection extends StatelessWidget {
                     subtitle: _getSubtitle('runs', stats!.numberOfRuns),
                     value: stats!.numberOfRuns,
                     icon: Icons.directions_run,
-                    chart: RunsBarChart(period: selectedPeriod),
+                    chart: const RunsBarChart(), // ✅ FIXED
                   ),
                   const SizedBox(height: 16),
 
@@ -101,7 +100,7 @@ class StatsSection extends StatelessWidget {
                     ),
                     value: stats!.totalDistance.toStringAsFixed(1),
                     icon: Icons.straighten,
-                    chart: DistanceLineChart(period: selectedPeriod),
+                    chart: const DistanceLineChart(), // ✅ FIXED
                   ),
                   const SizedBox(height: 16),
 
@@ -111,7 +110,7 @@ class StatsSection extends StatelessWidget {
                     subtitle: stats!.formattedTotalDuration,
                     value: stats!.formattedTotalDuration,
                     icon: Icons.timer,
-                    chart: DurationBarChart(period: selectedPeriod),
+                    chart: const DurationBarChart(), // ✅ FIXED
                   ),
                 ],
               ),
