@@ -70,13 +70,16 @@ class StatsSection extends StatelessWidget {
             onPeriodChanged: onPeriodChanged,
           ),
           const SizedBox(height: 24),
+
           if (stats != null) ...[
             FriendlySuggestionCard(
               totalRuns: stats!.numberOfRuns,
               totalDistance: stats!.totalDistance,
               selectedPeriod: selectedPeriod,
             ),
+
             const SizedBox(height: 16),
+
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
@@ -86,9 +89,13 @@ class StatsSection extends StatelessWidget {
                     subtitle: _getSubtitle('runs', stats!.numberOfRuns),
                     value: stats!.numberOfRuns,
                     icon: Icons.directions_run,
-                    chart: const RunsBarChart(),
+                    chart: RunsBarChart(
+                      runs: stats!.numberOfRuns,
+                    ),
                   ),
+
                   const SizedBox(height: 16),
+
                   StatCardWithGraph(
                     title: 'Distance',
                     subtitle: _getSubtitle(
@@ -97,20 +104,28 @@ class StatsSection extends StatelessWidget {
                     ),
                     value: stats!.totalDistance.toStringAsFixed(1),
                     icon: Icons.straighten,
-                    chart: const DistanceLineChart(),
+                    chart: DistanceLineChart(
+                      distance: stats!.totalDistance,
+                    ),
                   ),
+
                   const SizedBox(height: 16),
+
                   StatCardWithGraph(
                     title: 'Duration',
                     subtitle: stats!.formattedTotalDuration,
                     value: stats!.formattedTotalDuration,
                     icon: Icons.timer,
-                    chart: const DurationBarChart(),
+                    chart: DurationBarChart(
+                      duration: stats!.formattedTotalDuration,
+                    ),
                   ),
                 ],
               ),
             ),
+
             const SizedBox(height: 24),
+
             WeeklyInsightsCard(
               totalRuns: stats!.numberOfRuns,
               totalDistance: stats!.totalDistance,
