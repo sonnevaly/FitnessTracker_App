@@ -1,240 +1,132 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
+import '../services/database_service.dart';
+import '../models/running_session.dart';
 
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  int totalRuns = 0;
+  double totalDistance = 0.0;
+  String totalDuration = '0m';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStats();
+  }
+
+  Future<void> _loadStats() async {
+    final List<RunningSession> sessions =
+        await DatabaseService.instance.getAllSessions();
+
+    int runs = sessions.length;
+    double distance = 0;
+    int durationSeconds = 0;
+
+    for (final s in sessions) {
+      distance += s.distanceInKm;
+      durationSeconds += s.durationInSeconds;
+    }
+
+    setState(() {
+      totalRuns = runs;
+      totalDistance = distance;
+      totalDuration = _formatDuration(durationSeconds);
+    });
+  }
+
+  String _formatDuration(int seconds) {
+    final hours = seconds ~/ 3600;
+    final minutes = (seconds % 3600) ~/ 60;
+    return hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              children: [
-                // Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Profile',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textDark,
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.settings_outlined),
-                      onPressed: () {},
-                    ),
-                  ],
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Profile',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
                 ),
-                
-                SizedBox(height: 32),
-                
-                // Profile Avatar
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    gradient: AppColors.primaryGradient,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.3),
-                        blurRadius: 20,
-                        offset: Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
+              ),
+
+              const SizedBox(height: 32),
+
+              Center(
+                child: CircleAvatar(
+                  radius: 48,
+                  backgroundColor: AppColors.primary,
+                  child: const Icon(
                     Icons.person,
                     color: Colors.white,
-                    size: 48,
+                    size: 40,
                   ),
                 ),
-                
-                SizedBox(height: 16),
-                
-                Text(
-                  'Runner',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textDark,
-                  ),
-                ),
-                
-                SizedBox(height: 8),
-                
-                Text(
-                  'Fitness Enthusiast',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                
-                SizedBox(height: 32),
-                
-                // Stats Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildStatItem('12', 'Runs'),
-                    _buildDivider(),
-                    _buildStatItem('45.2', 'Total KM'),
-                    _buildDivider(),
-                    _buildStatItem('8', 'Streak'),
-                  ],
-                ),
-                
-                SizedBox(height: 32),
-                
-                // Menu Items
-                _buildMenuItem(
-                  'Personal Info',
-                  Icons.person_outline,
-                  () {},
-                ),
-                _buildMenuItem(
-                  'Achievements',
-                  Icons.emoji_events_outlined,
-                  () {},
-                ),
-                _buildMenuItem(
-                  'Activity History',
-                  Icons.history,
-                  () {},
-                ),
-                _buildMenuItem(
-                  'Statistics',
-                  Icons.bar_chart_outlined,
-                  () {},
-                ),
-                _buildMenuItem(
-                  'Settings',
-                  Icons.settings_outlined,
-                  () {},
-                ),
-                
-                SizedBox(height: 16),
-                
-                // Logout Button
-                Container(
-                  width: double.infinity,
-                  height: 56,
-                  child: OutlinedButton(
-                    onPressed: () {},
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: AppColors.error),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: Text(
-                      'Logout',
-                      style: TextStyle(
-                        color: AppColors.error,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-                
-                SizedBox(height: 32),
-              ],
-            ),
+              ),
+
+              const SizedBox(height: 24),
+
+              _buildStats(),
+            ],
           ),
         ),
       ),
     );
   }
-  
-  Widget _buildStatItem(String value, String label) {
+
+  Widget _buildStats() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        _StatItem('$totalRuns', 'Runs'),
+        _StatItem(totalDistance.toStringAsFixed(1), 'KM'),
+        _StatItem(totalDuration, 'Duration'),
+      ],
+    );
+  }
+}
+
+class _StatItem extends StatelessWidget {
+  final String value;
+  final String label;
+
+  const _StatItem(this.value, this.label);
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       children: [
         Text(
           value,
-          style: TextStyle(
-            fontSize: 24,
+          style: const TextStyle(
+            fontSize: 22,
             fontWeight: FontWeight.w700,
-            color: AppColors.textDark,
           ),
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 13,
-            color: AppColors.textSecondary,
+            color: Colors.grey,
           ),
         ),
       ],
-    );
-  }
-  
-  Widget _buildDivider() {
-    return Container(
-      width: 1,
-      height: 40,
-      color: Colors.grey.shade200,
-    );
-  }
-  
-  Widget _buildMenuItem(String title, IconData icon, VoidCallback onTap) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 10,
-                offset: Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, color: AppColors.cardDark, size: 22),
-              ),
-              SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textDark,
-                  ),
-                ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios,
-                size: 16,
-                color: AppColors.textSecondary,
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

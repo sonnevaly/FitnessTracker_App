@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/running_session.dart';
 import '../services/session_repository.dart';
-import '../widgets/sessions_list.dart';
-import '../widgets/session_detail_dialog.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -25,13 +23,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   Future<void> _loadHistory() async {
     setState(() => isLoading = true);
-
-    final data = await repository.getAllSessions();
-
-    setState(() {
-      sessions = data;
-      isLoading = false;
-    });
+    sessions = await repository.getAllSessions();
+    setState(() => isLoading = false);
   }
 
   @override
@@ -39,21 +32,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('History')),
       body: isLoading
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
-          : SessionsList(
-              sessions: sessions,
-              onTap: (session) {
-                showDialog(
-                  context: context,
-                  builder: (_) =>
-                      SessionDetailDialog(session: session),
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              itemCount: sessions.length,
+              itemBuilder: (_, index) {
+                final s = sessions[index];
+                return ListTile(
+                  title: Text('${s.distanceInKm} km'),
+                  subtitle: Text('${s.durationInSeconds} sec'),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () async {
+                      await repository.deleteSession(s.id);
+                      _loadHistory();
+                    },
+                  ),
                 );
-              },
-              onDelete: (id) async {
-                await repository.deleteSession(id);
-                _loadHistory();
               },
             ),
     );

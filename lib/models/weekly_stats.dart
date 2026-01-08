@@ -14,7 +14,6 @@ class WeeklyStats {
     required this.totalTrainingLoad,
   });
 
-  /// Create stats from session list
   factory WeeklyStats.fromSessions(List<RunningSession> sessions) {
     if (sessions.isEmpty) {
       return WeeklyStats(
@@ -43,13 +42,20 @@ class WeeklyStats {
     );
   }
 
-  /// Average pace (min/km)
+  List<double> distancePerRun(List<RunningSession> sessions) =>
+      sessions.map((e) => e.distanceInKm).toList();
+
+  List<int> durationPerRun(List<RunningSession> sessions) =>
+      sessions.map((e) => (e.durationInSeconds / 60).round()).toList();
+
+  List<double> loadPerRun(List<RunningSession> sessions) =>
+      sessions.map((e) => e.trainingLoad).toList();
+
   double get averagePace {
     if (totalDistance == 0) return 0;
     return (totalDuration / 60) / totalDistance;
   }
 
-  /// Formatted pace
   String get formattedAveragePace {
     if (totalDistance == 0) return '0:00';
 
@@ -59,7 +65,6 @@ class WeeklyStats {
     return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 
-  /// Formatted duration
   String get formattedTotalDuration {
     final hours = totalDuration ~/ 3600;
     final minutes = (totalDuration % 3600) ~/ 60;
@@ -70,14 +75,12 @@ class WeeklyStats {
     return '${minutes}m';
   }
 
-  /// Fatigue level (simple logic)
   String get fatigueLevel {
     if (totalTrainingLoad > 700) return 'High';
     if (totalTrainingLoad > 500) return 'Moderate';
     return 'Low';
   }
 
-  /// Recommendation text
   String get recommendation {
     if (totalTrainingLoad > 700) {
       return 'Rest day recommended';
