@@ -1,25 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/run_tracking_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/profile_screen.dart';
 import 'utils/app_colors.dart';
-import 'providers/dashboard_provider.dart';
-import 'providers/run_tracking_provider.dart';
-import 'providers/history_provider.dart';
 
 void main() {
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => DashboardProvider()),
-        ChangeNotifierProvider(create: (_) => RunTrackingProvider()),
-        ChangeNotifierProvider(create: (_) => HistoryProvider()),
-      ],
-      child: const MyApp(),
-    ),
-  );
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -33,7 +20,6 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primaryColor: AppColors.primary,
         scaffoldBackgroundColor: AppColors.background,
-        fontFamily: 'SF Pro',
         colorScheme: ColorScheme.light(
           primary: AppColors.primary,
           secondary: AppColors.success,
@@ -50,10 +36,10 @@ class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({Key? key}) : super(key: key);
 
   @override
-  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
+  State<MainNavigationScreen> createState() => MainNavigationScreenState();
 }
 
-class _MainNavigationScreenState extends State<MainNavigationScreen> {
+class MainNavigationScreenState extends State<MainNavigationScreen> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
@@ -63,7 +49,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     const ProfileScreen(),
   ];
 
-  void _onItemTapped(int index) {
+  void onItemTapped(int index) {  
     setState(() {
       _selectedIndex = index;
     });
@@ -108,7 +94,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final isSelected = _selectedIndex == index;
     
     return GestureDetector(
-      onTap: () => _onItemTapped(index),
+      onTap: () => onItemTapped(index),  // ✅ NO UNDERSCORE
       child: AnimatedContainer(
         duration: Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

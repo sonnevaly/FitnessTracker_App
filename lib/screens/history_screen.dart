@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
-import '../providers/history_provider.dart';
 import '../models/running_session.dart';
 import '../widgets/session_detail_dialog.dart';
 import '../utils/app_colors.dart';
@@ -14,63 +11,176 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
+  bool _isLoading = false;
+  List<RunningSession> _sessions = [];
+
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      context.read<HistoryProvider>().loadHistory();
+    _loadHistory();
+  }
+
+  Future<void> _loadHistory() async {
+    setState(() {
+      _isLoading = true;
     });
+
+    // Simulate loading - Replace with real database call later
+    await Future.delayed(Duration(seconds: 1));
+
+    // Mock data for now
+    setState(() {
+      _sessions = [
+        RunningSession(
+          id: '1',
+          date: DateTime.now().subtract(Duration(days: 1)),
+          durationInSeconds: 1800,
+          distanceInKm: 5.0,
+          rpe: 6,
+        ),
+        RunningSession(
+          id: '2',
+          date: DateTime.now().subtract(Duration(days: 3)),
+          durationInSeconds: 2400,
+          distanceInKm: 7.5,
+          rpe: 8,
+        ),
+      ];
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _deleteSession(String id) async {
+    setState(() {
+      _sessions.removeWhere((session) => session.id == id);
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Run deleted'),
+        backgroundColor: AppColors.error,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<HistoryProvider>();
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Run History'),
-      ),
-      body: provider.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : provider.sessions.isEmpty
-              ? const Center(
-                  child: Text(
-                    'No runs recorded yet.',
-                    style: TextStyle(color: Colors.grey),
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Run History',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textDark,
+                    ),
                   ),
-                )
-              : ListView.builder(
-                  itemCount: provider.sessions.length,
-                  itemBuilder: (context, index) {
-                    final session = provider.sessions[index];
-                    return _buildRunCard(session, provider);
-                  },
-                ),
+                  IconButton(
+                    icon: Icon(Icons.filter_list),
+                    onPressed: () {},
+                  ),
+                ],
+              ),
+            ),
+
+            // Content
+            Expanded(
+              child: _isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                      ),
+                    )
+                  : _sessions.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.inbox_outlined,
+                                size: 64,
+                                color: AppColors.textSecondary,
+                              ),
+                              SizedBox(height: 16),
+                              Text(
+                                'No runs recorded yet',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: EdgeInsets.symmetric(horizontal: 20),
+                          itemCount: _sessions.length,
+                          itemBuilder: (context, index) {
+                            final session = _sessions[index];
+                            return _buildRunCard(session);
+                          },
+                        ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _buildRunCard(RunningSession session, HistoryProvider provider) {
+  Widget _buildRunCard(RunningSession session) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      elevation: 0,
       child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: _getRPEColor(session.rpe),
-          child: Text(
-            session.rpe.toString(),
-            style: const TextStyle(color: Colors.white),
+        contentPadding: EdgeInsets.all(16),
+        leading: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: _getRPEColor(session.rpe).withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Text(
+              session.rpe.toString(),
+              style: TextStyle(
+                color: _getRPEColor(session.rpe),
+                fontWeight: FontWeight.w700,
+                fontSize: 18,
+              ),
+            ),
           ),
         ),
         title: Text(
           '${session.distanceInKm.toStringAsFixed(2)} km',
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 16,
+          ),
         ),
         subtitle: Text(
-          '${_formatDuration(session.durationInSeconds)} • ${_formatDate(session.date)}',
+          '${session.formattedDuration} • ${_formatDate(session.date)}',
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 14,
+          ),
         ),
         trailing: IconButton(
-          icon: const Icon(Icons.delete, color: Colors.red),
+          icon: Icon(Icons.delete_outline, color: AppColors.error),
           onPressed: () async {
-            await provider.deleteSession(session.id);
+            await _deleteSession(session.id);
           },
         ),
         onTap: () {
@@ -81,12 +191,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
         },
       ),
     );
-  }
-
-  String _formatDuration(int seconds) {
-    int minutes = seconds ~/ 60;
-    int sec = seconds % 60;
-    return '$minutes:${sec.toString().padLeft(2, '0')}';
   }
 
   String _formatDate(DateTime date) {

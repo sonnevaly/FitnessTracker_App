@@ -1,17 +1,111 @@
-import 'package:fitness_tracker/screens/main_screen.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../providers/run_tracking_provider.dart';
 import '../utils/app_colors.dart';
 import '../widgets/rpe_dialog.dart';
 
-class RunTrackingScreen extends StatelessWidget {
+class RunTrackingScreen extends StatefulWidget {
   const RunTrackingScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final provider = context.watch<RunTrackingProvider>();
+  State<RunTrackingScreen> createState() => _RunTrackingScreenState();
+}
+
+class _RunTrackingScreenState extends State<RunTrackingScreen> {
+  // Local state variables (NO PROVIDER!)
+  bool _isRunning = false;
+  bool _isPaused = false;
+  int _duration = 0; // in seconds
+  double _distance = 0.0; // in kilometers
+  
+  Timer? _timer;
+  
+  // Computed values
+  String get _formattedDuration {
+    int hours = _duration ~/ 3600;
+    int minutes = (_duration % 3600) ~/ 60;
+    int seconds = _duration % 60;
+    return '${hours.toString().padLeft(2, '0')}:'
+           '${minutes.toString().padLeft(2, '0')}:'
+           '${seconds.toString().padLeft(2, '0')}';
+  }
+  
+  String get _formattedDistance {
+    return _distance.toStringAsFixed(2);
+  }
+  
+  String get _formattedPace {
+    if (_distance == 0) return '0:00';
+    double paceInSeconds = (_duration / _distance) / 60;
+    int minutes = paceInSeconds.floor();
+    int seconds = ((paceInSeconds - minutes) * 60).floor();
+    return '${minutes}:${seconds.toString().padLeft(2, '0')}';
+  }
+  
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _startRun() {
+    setState(() {
+      _isRunning = true;
+      _isPaused = false;
+      _duration = 0;
+      _distance = 0.0;
+    });
     
+    // Start timer
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (!_isPaused) {
+        setState(() {
+          _duration++;
+          // Fake distance increment (0.01 km per second)
+          _distance += 0.01;
+        });
+      }
+    });
+  }
+  
+  void _pauseRun() {
+    setState(() {
+      _isPaused = true;
+    });
+  }
+  
+  void _resumeRun() {
+    setState(() {
+      _isPaused = false;
+    });
+  }
+  
+  Future<void> _stopRun(int rpe) async {
+    _timer?.cancel();
+    
+    // Save data here (for now just print)
+    print('Run saved: ${_distance}km in ${_formattedDuration}, RPE: $rpe');
+    
+    setState(() {
+      _isRunning = false;
+      _isPaused = false;
+      _duration = 0;
+      _distance = 0.0;
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Run saved with RPE $rpe!'),
+        backgroundColor: AppColors.success,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -22,19 +116,8 @@ class RunTrackingScreen extends StatelessWidget {
               children: [
                 // Header
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    IconButton(
-                      icon: Icon(Icons.arrow_back),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const MainScreen(),
-                          ),
-                        );
-                      },
-                    ),
                     Text(
                       'Track Run',
                       style: TextStyle(
@@ -42,28 +125,22 @@ class RunTrackingScreen extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    IconButton(
-                      icon: Icon(Icons.more_vert),
-                      onPressed: () {},
-                    ),
                   ],
                 ),
                 
                 SizedBox(height: 40),
                 
-                // Large circular progress
-                _buildProgressCircle(provider),
+                _buildProgressCircle(),
                 
                 SizedBox(height: 48),
                 
-                // Stats cards
-                if (provider.isRunning) ...[
+                if (_isRunning) ...[
                   Row(
                     children: [
                       Expanded(
                         child: _buildMiniStatCard(
                           'Distance',
-                          '${provider.formattedDistance} km',
+                          '$_formattedDistance km',
                           Icons.straighten,
                         ),
                       ),
@@ -71,7 +148,7 @@ class RunTrackingScreen extends StatelessWidget {
                       Expanded(
                         child: _buildMiniStatCard(
                           'Pace',
-                          '${provider.formattedPace}',
+                          _formattedPace,
                           Icons.speed,
                         ),
                       ),
@@ -80,11 +157,10 @@ class RunTrackingScreen extends StatelessWidget {
                   SizedBox(height: 48),
                 ],
                 
-                // Control buttons
-                if (!provider.isRunning)
-                  _buildStartButton(provider)
+                if (!_isRunning)
+                  _buildStartButton()
                 else
-                  _buildControlButtons(context, provider),
+                  _buildControlButtons(),
                 
                 SizedBox(height: 20),
               ],
@@ -95,11 +171,10 @@ class RunTrackingScreen extends StatelessWidget {
     );
   }
   
-  Widget _buildProgressCircle(RunTrackingProvider provider) {
+  Widget _buildProgressCircle() {
     return Stack(
       alignment: Alignment.center,
       children: [
-        // Outer circle
         Container(
           width: 240,
           height: 240,
@@ -115,14 +190,13 @@ class RunTrackingScreen extends StatelessWidget {
             ],
           ),
         ),
-        // Inner circle with gradient
         Container(
           width: 200,
           height: 200,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: provider.isRunning
-                ? (provider.isPaused 
+            gradient: _isRunning
+                ? (_isPaused 
                     ? LinearGradient(
                         colors: [Color(0xFFFBBF24), Color(0xFFF59E0B)],
                       )
@@ -134,8 +208,8 @@ class RunTrackingScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  provider.isRunning
-                      ? (provider.isPaused 
+                  _isRunning
+                      ? (_isPaused 
                           ? Icons.pause
                           : Icons.directions_run)
                       : Icons.play_arrow,
@@ -144,16 +218,14 @@ class RunTrackingScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 12),
                 Text(
-                  provider.isRunning
-                      ? provider.formattedDuration
-                      : 'Ready',
+                  _isRunning ? _formattedDuration : 'Ready',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
                   ),
                 ),
-                if (!provider.isRunning)
+                if (!_isRunning)
                   Text(
                     'to Run',
                     style: TextStyle(
@@ -208,12 +280,12 @@ class RunTrackingScreen extends StatelessWidget {
     );
   }
   
-  Widget _buildStartButton(RunTrackingProvider provider) {
+  Widget _buildStartButton() {
     return Container(
       width: double.infinity,
       height: 56,
       child: ElevatedButton(
-        onPressed: () => provider.startRun(),
+        onPressed: _startRun,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.cardDark,
           foregroundColor: Colors.white,
@@ -234,20 +306,14 @@ class RunTrackingScreen extends StatelessWidget {
     );
   }
   
-  Widget _buildControlButtons(BuildContext context, RunTrackingProvider provider) {
+  Widget _buildControlButtons() {
     return Row(
       children: [
         Expanded(
           child: Container(
             height: 56,
             child: ElevatedButton(
-              onPressed: () {
-                if (provider.isPaused) {
-                  provider.resumeRun();
-                } else {
-                  provider.pauseRun();
-                }
-              },
+              onPressed: _isPaused ? _resumeRun : _pauseRun,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 foregroundColor: AppColors.textDark,
@@ -258,7 +324,7 @@ class RunTrackingScreen extends StatelessWidget {
                 side: BorderSide(color: Colors.grey.shade200),
               ),
               child: Text(
-                provider.isPaused ? 'RESUME' : 'PAUSE',
+                _isPaused ? 'RESUME' : 'PAUSE',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -272,7 +338,7 @@ class RunTrackingScreen extends StatelessWidget {
           child: Container(
             height: 56,
             child: ElevatedButton(
-              onPressed: () => _showStopDialog(context, provider),
+              onPressed: () => _showStopDialog(),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.cardDark,
                 foregroundColor: Colors.white,
@@ -295,24 +361,14 @@ class RunTrackingScreen extends StatelessWidget {
     );
   }
   
-  void _showStopDialog(BuildContext context, RunTrackingProvider provider) {
+  void _showStopDialog() {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => RPEDialog(
-        onSave: (rpe) async {
+        onSave: (rpe) {
           Navigator.pop(context);
-          await provider.stopRun(rpe);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Run saved with RPE $rpe!'),
-              backgroundColor: AppColors.success,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          );
+          _stopRun(rpe);
         },
       ),
     );
