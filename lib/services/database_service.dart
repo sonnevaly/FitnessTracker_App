@@ -2,14 +2,13 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/running_session.dart';
 
-/// Service for SQLite database operations
 class DatabaseService {
   static final DatabaseService instance = DatabaseService._init();
   static Database? _database;
 
   DatabaseService._init();
 
-  /// Get database instance (creates if doesn't exist)
+  /// Get database instance
   Future<Database> get database async {
     if (_database != null) return _database!;
     _database = await _initDB('fitness_tracker.db');
@@ -17,41 +16,31 @@ class DatabaseService {
   }
 
   /// Initialize database
-  Future<Database> _initDB(String filePath) async {
+  Future<Database> _initDB(String fileName) async {
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, filePath);
+    final path = join(dbPath, fileName);
 
-    return await openDatabase(
+    return openDatabase(
       path,
       version: 1,
       onCreate: _createDB,
     );
   }
 
-  /// Create database tables
-  Future _createDB(Database db, int version) async {
-    const idType = 'TEXT PRIMARY KEY';
-    const textType = 'TEXT NOT NULL';
-    const integerType = 'INTEGER NOT NULL';
-    const realType = 'REAL NOT NULL';
-
+  /// Create tables
+  Future<void> _createDB(Database db, int version) async {
     await db.execute('''
       CREATE TABLE sessions (
-        id $idType,
-        date $textType,
-        durationInSeconds $integerType,
-        distanceInKm $realType,
-        rpe $integerType
+        id TEXT PRIMARY KEY,
+        date TEXT NOT NULL,
+        durationInSeconds INTEGER NOT NULL,
+        distanceInKm REAL NOT NULL,
+        rpe INTEGER NOT NULL
       )
-    ''');
-
-    // Create index on date for faster queries
-    await db.execute('''
-      CREATE INDEX idx_session_date ON sessions(date)
     ''');
   }
 
-  /// Insert a new session
+  /// Insert session
   Future<void> insertSession(RunningSession session) async {
     final db = await database;
     await db.insert(
@@ -61,7 +50,7 @@ class DatabaseService {
     );
   }
 
-  /// Get all sessions
+  /// Get all sessions (History & Dashboard)
   Future<List<RunningSession>> getAllSessions() async {
     final db = await database;
     final result = await db.query(
@@ -69,97 +58,74 @@ class DatabaseService {
       orderBy: 'date DESC',
     );
 
-    return result.map((map) => RunningSession.fromMap(map)).toList();
+    return result.map((e) => RunningSession.fromMap(e)).toList();
   }
 
-  /// Get sessions within a date range
-  Future<List<RunningSession>> getSessionsInDateRange(
-    DateTime start,
-    DateTime end,
-  ) async {
+  /// Get sessions from last N days (weekly/monthly)
+  Future<List<RunningSession>> getSessionsLastNDays(int days) async {
     final db = await database;
+    final end = DateTime.now();
+    final start = end.subtract(Duration(days: days));
+
     final result = await db.query(
       'sessions',
       where: 'date >= ? AND date <= ?',
-      whereArgs: [start.toIso8601String(), end.toIso8601String()],
+      whereArgs: [
+        start.toIso8601String(),
+        end.toIso8601String(),
+      ],
       orderBy: 'date DESC',
     );
 
-    return result.map((map) => RunningSession.fromMap(map)).toList();
+    return result.map((e) => RunningSession.fromMap(e)).toList();
   }
 
-  /// Get sessions from last N days
-  Future<List<RunningSession>> getSessionsLastNDays(int days) async {
-    final end = DateTime.now();
-    final start = end.subtract(Duration(days: days));
-    return getSessionsInDateRange(start, end);
-  }
-
-  /// Get a single session by ID
-  Future<RunningSession?> getSessionById(String id) async {
-    final db = await database;
-    final result = await db.query(
-      'sessions',
-      where: 'id = ?',
-      whereArgs: [id],
-      limit: 1,
-    );
-
-    if (result.isEmpty) return null;
-    return RunningSession.fromMap(result.first);
-  }
-
-  /// Update a session
-  Future<int> updateSession(RunningSession session) async {
-    final db = await database;
-    return db.update(
-      'sessions',
-      session.toMap(),
-      where: 'id = ?',
-      whereArgs: [session.id],
-    );
-  }
-
-  /// Delete a session
-  Future<int> deleteSession(String id) async {
-    final db = await database;
-    return await db.delete(
-      'sessions',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-  }
-
-  /// Delete all sessions (for testing)
-  Future<int> deleteAllSessions() async {
-    final db = await database;
-    return await db.delete('sessions');
-  }
-
-  /// Calculate total distance of all sessions
-  Future<double> calculateTotalDistance() async {
-    final db = await database;
-    final result = await db.rawQuery('SELECT SUM(distanceInKm) FROM sessions');
-    final total = result.first.values.first;
-    return (total as num?)?.toDouble() ?? 0.0;
-  }
-
-  /// Get total number of sessions
-  Future<int> getSessionCount() async {
+  /// Check if database is empty (used for mock seeding)
+  Future<bool> isEmpty() async {
     final db = await database;
     final result = await db.rawQuery('SELECT COUNT(*) FROM sessions');
-    return Sqflite.firstIntValue(result) ?? 0;
+    return Sqflite.firstIntValue(result) == 0;
   }
 
-  /// Check if database is empty
-  Future<bool> isEmpty() async {
-    final count = await getSessionCount();
-    return count == 0;
+  /// Seed mock data ONCE (dashboard demo data)
+  Future<void> seedMockDataIfEmpty() async {
+    if (!await isEmpty()) return;
+
+    final mockSessions = [
+      RunningSession(
+        id: 'mock-1',
+        date: DateTime.now().subtract(const Duration(days: 1)),
+        durationInSeconds: 1800,
+        distanceInKm: 5.0,
+        rpe: 5,
+      ),
+      RunningSession(
+        id: 'mock-2',
+        date: DateTime.now().subtract(const Duration(days: 3)),
+        durationInSeconds: 2700,
+        distanceInKm: 8.0,
+        rpe: 6,
+      ),
+    ];
+
+    for (final session in mockSessions) {
+      await insertSession(session);
+    }
   }
 
-  /// Close database
-  Future close() async {
+  /// Delete session (History screen)
+  Future<void> deleteSession(String id) async {
     final db = await database;
-    db.close();
+    await db.delete(
+      'sessions',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  /// Delete all sessions (reset/testing)
+  Future<void> deleteAllSessions() async {
+    final db = await database;
+    await db.delete('sessions');
   }
 }
