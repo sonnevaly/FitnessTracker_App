@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../utils/app_colors.dart';
 import '../models/running_session.dart';
+import '../utils/formatters.dart';
+import '../utils/rpe_helper.dart';
 
 class SessionsList extends StatelessWidget {
   final List<RunningSession> sessions;
@@ -34,18 +35,18 @@ class SessionsList extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: _getRPEColor(session.rpe),
+              backgroundColor: RPEHelper.color(session.rpe),
               child: Text(
                 session.rpe.toString(),
                 style: const TextStyle(color: Colors.white),
               ),
             ),
             title: Text(
-              '${session.distanceInKm.toStringAsFixed(2)} km',
+              Formatters.distance(session.distanceInKm),
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             subtitle: Text(
-              '${_formatDuration(session.durationInSeconds)} • ${_formatDate(session.date)}',
+              '${Formatters.duration(session.durationInSeconds)} • ${Formatters.date(session.date)}',
             ),
             trailing: IconButton(
               icon: const Icon(Icons.delete, color: Colors.red),
@@ -56,22 +57,5 @@ class SessionsList extends StatelessWidget {
         );
       },
     );
-  }
-
-  String _formatDuration(int seconds) {
-    int minutes = seconds ~/ 60;
-    int sec = seconds % 60;
-    return '$minutes:${sec.toString().padLeft(2, '0')}';
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
-  }
-
-  Color _getRPEColor(int rpe) {
-    if (rpe <= 3) return AppColors.success;
-    if (rpe <= 6) return AppColors.info;
-    if (rpe <= 8) return AppColors.warning;
-    return AppColors.error;
   }
 }

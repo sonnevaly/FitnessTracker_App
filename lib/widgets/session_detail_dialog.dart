@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/running_session.dart';
+import '../utils/formatters.dart';
 
 class SessionDetailDialog extends StatelessWidget {
   final RunningSession session;
@@ -17,33 +18,30 @@ class SessionDetailDialog extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildRow('Date', _formatDate(session.date)),
-          _buildRow('Distance', session.formattedDistance),
-          _buildRow('Duration', session.formattedDuration),
-          _buildRow('Pace', '${session.formattedPace} /km'),
-          _buildRow('RPE', session.rpe.toString()),
-          _buildRow(
-            'Training Load',
-            session.trainingLoad.toStringAsFixed(0),
-          ),
+          _row('Date', Formatters.date(session.date)),
+          _row('Distance', Formatters.distance(session.distanceInKm)),
+          _row('Duration', Formatters.duration(session.durationInSeconds)),
+          _row('Pace', Formatters.pace(session.distanceInKm, session.durationInSeconds)),
+          _row('RPE', session.rpe.toString()),
+          _row('Training Load', session.trainingLoad.toStringAsFixed(0)),
         ],
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.pop(context),
           child: const Text('Close'),
         ),
       ],
     );
   }
 
-  Widget _buildRow(String label, String value) {
+  Widget _row(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text('$label:'),
+          Text(label),
           Text(
             value,
             style: const TextStyle(fontWeight: FontWeight.bold),
@@ -51,9 +49,5 @@ class SessionDetailDialog extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
   }
 }

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
+import '../services/rpe_service.dart';
 
 class RPEDialog extends StatefulWidget {
   final Function(int) onSave;
-  
-  const RPEDialog({Key? key, required this.onSave}) : super(key: key);
+
+  const RPEDialog({super.key, required this.onSave});
 
   @override
   State<RPEDialog> createState() => _RPEDialogState();
@@ -12,24 +13,12 @@ class RPEDialog extends StatefulWidget {
 
 class _RPEDialogState extends State<RPEDialog> {
   int _selectedRPE = 5;
-  
-  Color _getRPEColor(int rpe) {
-    if (rpe <= 3) return AppColors.success;
-    if (rpe <= 6) return AppColors.info;
-    if (rpe <= 8) return AppColors.warning;
-    return AppColors.error;
-  }
-  
-  String _getRPELabel(int rpe) {
-    if (rpe <= 2) return 'Very Easy';
-    if (rpe <= 4) return 'Easy';
-    if (rpe <= 6) return 'Moderate';
-    if (rpe <= 8) return 'Hard';
-    return 'Very Hard';
-  }
-  
+
   @override
   Widget build(BuildContext context) {
+    final color = RpeService.color(_selectedRPE);
+    final label = RpeService.label(_selectedRPE);
+
     return Dialog(
       backgroundColor: Colors.transparent,
       child: Container(
@@ -41,14 +30,13 @@ class _RPEDialogState extends State<RPEDialog> {
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
               blurRadius: 30,
-              offset: Offset(0, 20),
+              offset: const Offset(0, 20),
             ),
           ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Title
             Text(
               'How hard was\nyour run?',
               textAlign: TextAlign.center,
@@ -59,9 +47,7 @@ class _RPEDialogState extends State<RPEDialog> {
                 height: 1.3,
               ),
             ),
-            
-            SizedBox(height: 8),
-            
+            const SizedBox(height: 8),
             Text(
               'Rate of Perceived Exertion',
               style: TextStyle(
@@ -69,18 +55,16 @@ class _RPEDialogState extends State<RPEDialog> {
                 color: AppColors.textSecondary,
               ),
             ),
-            
-            SizedBox(height: 40),
+            const SizedBox(height: 40),
+
             Container(
               width: 140,
               height: 140,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
                   colors: [
-                    _getRPEColor(_selectedRPE).withOpacity(0.2),
-                    _getRPEColor(_selectedRPE).withOpacity(0.05),
+                    color.withOpacity(0.2),
+                    color.withOpacity(0.05),
                   ],
                 ),
                 shape: BoxShape.circle,
@@ -91,34 +75,32 @@ class _RPEDialogState extends State<RPEDialog> {
                   style: TextStyle(
                     fontSize: 72,
                     fontWeight: FontWeight.w800,
-                    color: _getRPEColor(_selectedRPE),
+                    color: color,
                   ),
                 ),
               ),
             ),
-            
-            SizedBox(height: 20),
-            
-            // Label
+
+            const SizedBox(height: 20),
+
             Text(
-              _getRPELabel(_selectedRPE),
+              label,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: _getRPEColor(_selectedRPE),
+                color: color,
               ),
             ),
-            
-            SizedBox(height: 40),
-            
-            // Slider
+
+            const SizedBox(height: 40),
+
             SliderTheme(
               data: SliderThemeData(
-                activeTrackColor: _getRPEColor(_selectedRPE),
+                activeTrackColor: color,
                 inactiveTrackColor: Colors.grey.shade200,
-                thumbColor: _getRPEColor(_selectedRPE),
-                overlayColor: _getRPEColor(_selectedRPE).withOpacity(0.1),
-                thumbShape: RoundSliderThumbShape(enabledThumbRadius: 12),
+                thumbColor: color,
+                overlayColor: color.withOpacity(0.1),
+                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12),
                 trackHeight: 6,
               ),
               child: Slider(
@@ -133,82 +115,37 @@ class _RPEDialogState extends State<RPEDialog> {
                 },
               ),
             ),
-            
-            // Min/Max labels
+
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    '1 Easy',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  Text(
-                    '10 Max',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
+                  Text('1 Easy', style: TextStyle(color: AppColors.textSecondary)),
+                  Text('10 Max', style: TextStyle(color: AppColors.textSecondary)),
                 ],
               ),
             ),
-            
-            SizedBox(height: 32),
-            
-            // Buttons
+
+            const SizedBox(height: 32),
+
             Row(
               children: [
                 Expanded(
-                  child: Container(
-                    height: 52,
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.grey.shade200),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        'Cancel',
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel'),
                   ),
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Expanded(
-                  child: Container(
-                    height: 52,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        widget.onSave(_selectedRPE);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.cardDark,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        'Save Run',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                  child: ElevatedButton(
+                    onPressed: () => widget.onSave(_selectedRPE),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.cardDark,
+                      foregroundColor: Colors.white,
                     ),
+                    child: const Text('Save Run'),
                   ),
                 ),
               ],

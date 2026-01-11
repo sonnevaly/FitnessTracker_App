@@ -30,13 +30,10 @@ class HeroImageCard extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              /// 🔥 BACKGROUND IMAGE (YOUR ASSET)
               Image.asset(
                 'assets/images/run_banner.jpg',
                 fit: BoxFit.cover,
               ),
-
-              /// DARK OVERLAY (READABLE TEXT)
               Container(
                 color: Colors.black.withOpacity(0.45),
               ),

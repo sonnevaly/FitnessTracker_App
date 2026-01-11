@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/running_session.dart';
 import '../models/weekly_stats.dart';
 import '../services/session_repository.dart';
+import '../services/suggestion_service.dart';
+import '../services/weekly_insight_service.dart';
 import '../widgets/dashbaord/dashboard_header.dart';
 import '../widgets/dashbaord/image_card.dart';
 import '../widgets/dashbaord/suggestion.dart';
@@ -33,16 +35,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() => isLoading = true);
 
     final data = await repository.getAllSessions();
+    final weeklyStats = WeeklyStats.fromSessions(data);
 
     setState(() {
       sessions = data;
-      stats = WeeklyStats.fromSessions(data);
+      stats = weeklyStats;
       isLoading = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final suggestion = stats == null
+        ? null
+        : SuggestionService.generate(
+            totalRuns: stats!.numberOfRuns,
+            totalDistance: stats!.totalDistance,
+            period: 'This Week',
+          );
+
+    final insights = stats == null
+        ? const <InsightItem>[]
+        : WeeklyInsightService.generate(
+            stats!.numberOfRuns,
+            stats!.totalDistance,
+          );
+
     return Scaffold(
       body: SafeArea(
         child: isLoading
@@ -51,10 +69,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 physics: const BouncingScrollPhysics(),
                 child: Column(
                   children: [
-                    /// HEADER
                     const DashboardHeader(),
 
-                    /// HERO IMAGE
                     HeroImageCard(
                       onStart: () {
                         Navigator.push(
@@ -66,17 +82,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       },
                     ),
 
-                    /// FRIENDLY SUGGESTION
-                    if (stats != null)
+                    if (suggestion != null)
                       FriendlySuggestionCard(
-                        totalRuns: stats!.numberOfRuns,
-                        totalDistance: stats!.totalDistance,
-                        selectedPeriod: 'This Week',
+                        suggestion: suggestion,
                       ),
 
                     const SizedBox(height: 24),
 
-                    /// STATS + GRAPHS
                     StatsSection(
                       sessions: sessions,
                       stats: stats,
@@ -85,12 +97,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                     const SizedBox(height: 24),
 
-                    /// WEEKLY INSIGHTS
-                    if (stats != null)
+                    if (insights.isNotEmpty)
                       WeeklyInsightsCard(
-                        totalRuns: stats!.numberOfRuns,
-                        totalDistance: stats!.totalDistance,
-                        totalDuration: stats!.formattedTotalDuration,
+                        insights: insights,
                       ),
 
                     const SizedBox(height: 40),

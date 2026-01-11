@@ -1,102 +1,82 @@
 import 'dart:async';
-import 'package:fitness_tracker/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
+import '../utils/formatters.dart';
 import '../widgets/rpe_dialog.dart';
 import '../models/running_session.dart';
-import '../services/database_service.dart';
+import '../services/session_repository.dart';
+import 'main_screen.dart';
 
 class RunTrackingScreen extends StatefulWidget {
-  const RunTrackingScreen({Key? key}) : super(key: key);
+  const RunTrackingScreen({super.key});
 
   @override
   State<RunTrackingScreen> createState() => _RunTrackingScreenState();
 }
 
 class _RunTrackingScreenState extends State<RunTrackingScreen> {
-  // ===== STATE =====
   bool _isRunning = false;
   bool _isPaused = false;
-  int _duration = 0;      // seconds
-  double _distance = 0.0; // km
+
+  int _durationInSeconds = 0;
+  double _distanceInKm = 0.0;
 
   Timer? _timer;
+  final SessionRepository _repository = SessionRepository();
 
-  // ===== FORMATTERS =====
-  String get formattedDuration {
-    final h = _duration ~/ 3600;
-    final m = (_duration % 3600) ~/ 60;
-    final s = _duration % 60;
-    return '${h.toString().padLeft(2, '0')}:'
-           '${m.toString().padLeft(2, '0')}:'
-           '${s.toString().padLeft(2, '0')}';
-  }
-
-  String get formattedDistance => _distance.toStringAsFixed(2);
-
-  String get formattedPace {
-    if (_distance == 0) return '0:00';
-    final secPerKm = _duration / _distance;
-    final min = secPerKm ~/ 60;
-    final sec = (secPerKm % 60).round();
-    return '$min:${sec.toString().padLeft(2, '0')}';
-  }
-
-  // ===== LIFECYCLE =====
   @override
   void dispose() {
     _timer?.cancel();
     super.dispose();
   }
 
-  // ===== RUN CONTROL =====
-  void startRun() {
+  void _startRun() {
     setState(() {
       _isRunning = true;
       _isPaused = false;
-      _duration = 0;
-      _distance = 0.0;
+      _durationInSeconds = 0;
+      _distanceInKm = 0.0;
     });
 
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!_isPaused) {
         setState(() {
-          _duration++;
-          _distance += 0.01; // fake GPS (submission-safe)
+          _durationInSeconds++;
+          _distanceInKm += 0.01;
         });
       }
     });
   }
 
-  void pauseRun() => setState(() => _isPaused = true);
-  void resumeRun() => setState(() => _isPaused = false);
+  void _pauseRun() => setState(() => _isPaused = true);
+  void _resumeRun() => setState(() => _isPaused = false);
 
-  Future<void> stopRun(int rpe) async {
+  Future<void> _stopRun(int rpe) async {
     _timer?.cancel();
 
     final session = RunningSession(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       date: DateTime.now(),
-      durationInSeconds: _duration,
-      distanceInKm: _distance,
+      durationInSeconds: _durationInSeconds,
+      distanceInKm: _distanceInKm,
       rpe: rpe,
     );
 
-    await DatabaseService.instance.insertSession(session);
+    await _repository.saveSession(session);
 
     setState(() {
       _isRunning = false;
       _isPaused = false;
-      _duration = 0;
-      _distance = 0.0;
+      _durationInSeconds = 0;
+      _distanceInKm = 0.0;
     });
 
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Run saved')),
     );
   }
 
-  // ===== UI =====
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -115,16 +95,11 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
         onPressed: () {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (_) => const MainScreen(),
-              ),
-            );
-          },
+            MaterialPageRoute(builder: (_) => const MainScreen()),
+          );
+        },
       ),
-      title: const Text(
-        'Track Run',
-        style: TextStyle(color: Colors.black),
-      ),
+      title: const Text('Track Run', style: TextStyle(color: Colors.black)),
       centerTitle: true,
     );
   }
@@ -137,9 +112,7 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
           const SizedBox(height: 40),
           _buildProgressCircle(),
           const SizedBox(height: 48),
-
           if (_isRunning) _buildStats(),
-
           const SizedBox(height: 48),
           _isRunning ? _buildControls() : _buildStartButton(),
         ],
@@ -147,7 +120,6 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
     );
   }
 
-  // ===== COMPONENTS =====
   Widget _buildProgressCircle() {
     return Stack(
       alignment: Alignment.center,
@@ -186,16 +158,16 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
               children: [
                 Icon(
                   _isRunning
-                      ? (_isPaused
-                          ? Icons.pause
-                          : Icons.directions_run)
+                      ? (_isPaused ? Icons.pause : Icons.directions_run)
                       : Icons.play_arrow,
                   color: Colors.white,
                   size: 48,
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  _isRunning ? formattedDuration : 'Ready',
+                  _isRunning
+                      ? Formatters.duration(_durationInSeconds)
+                      : 'Ready',
                   style: const TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w700,
@@ -221,9 +193,17 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
   Widget _buildStats() {
     return Row(
       children: [
-        _statCard('Distance', '$formattedDistance km', Icons.straighten),
+        _statCard(
+          'Distance',
+          Formatters.distance(_distanceInKm),
+          Icons.straighten,
+        ),
         const SizedBox(width: 16),
-        _statCard('Pace', formattedPace, Icons.speed),
+        _statCard(
+          'Pace',
+          Formatters.pace(_distanceInKm, _durationInSeconds),
+          Icons.speed,
+        ),
       ],
     );
   }
@@ -239,10 +219,7 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
             const SizedBox(height: 8),
             Text(
               value,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-              ),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 4),
             Text(
@@ -263,7 +240,7 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
       width: double.infinity,
       height: 56,
       child: ElevatedButton(
-        onPressed: startRun,
+        onPressed: _startRun,
         style: _darkButtonStyle(),
         child: const Text('START RUN'),
       ),
@@ -275,7 +252,7 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
       children: [
         Expanded(
           child: ElevatedButton(
-            onPressed: _isPaused ? resumeRun : pauseRun,
+            onPressed: _isPaused ? _resumeRun : _pauseRun,
             style: _lightButtonStyle(),
             child: Text(_isPaused ? 'RESUME' : 'PAUSE'),
           ),
@@ -299,13 +276,12 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
       builder: (_) => RPEDialog(
         onSave: (rpe) {
           Navigator.pop(context);
-          stopRun(rpe);
+          _stopRun(rpe);
         },
       ),
     );
   }
 
-  // ===== STYLES =====
   BoxDecoration _cardDecoration() => BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
