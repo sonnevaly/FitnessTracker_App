@@ -74,7 +74,7 @@
         id: map['id'] as String,
         date: DateTime.parse(map['date'] as String),
         durationInSeconds: map['durationInSeconds'] as int,
-        distanceInKm: map['distanceInKm'] as double,
+        distanceInKm: (map['distanceInKm'] as num).toDouble(),
         rpe: map['rpe'] as int,
       );
     }

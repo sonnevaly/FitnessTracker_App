@@ -2,10 +2,6 @@ import '../models/running_session.dart';
 import '../models/weekly_stats.dart';
 import 'database_service.dart';
 
-/// Repository for managing running sessions
-/// NOTE:
-/// - This is NOT state management
-/// - UI state is handled by StatefulWidgets
 class SessionRepository {
   final DatabaseService _dbService = DatabaseService.instance;
 

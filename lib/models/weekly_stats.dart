@@ -4,53 +4,39 @@ import 'running_session.dart';
 class WeeklyStats {
   final int numberOfRuns;
   final double totalDistance;
-  final int totalDuration;
-  final double totalTrainingLoad;
+  final int totalDuration; // seconds
 
   WeeklyStats({
     required this.numberOfRuns,
     required this.totalDistance,
     required this.totalDuration,
-    required this.totalTrainingLoad,
   });
 
   factory WeeklyStats.fromSessions(List<RunningSession> sessions) {
-    if (sessions.isEmpty) {
-      return WeeklyStats(
-        numberOfRuns: 0,
-        totalDistance: 0,
-        totalDuration: 0,
-        totalTrainingLoad: 0,
-      );
-    }
-
     double distance = 0;
     int duration = 0;
-    double load = 0;
 
     for (final s in sessions) {
       distance += s.distanceInKm;
       duration += s.durationInSeconds;
-      load += s.trainingLoad;
     }
 
     return WeeklyStats(
       numberOfRuns: sessions.length,
       totalDistance: distance,
       totalDuration: duration,
-      totalTrainingLoad: load,
     );
   }
 
+  /// Used by distance chart
   List<double> distancePerRun(List<RunningSession> sessions) =>
       sessions.map((e) => e.distanceInKm).toList();
 
+  /// Used by duration chart (minutes)
   List<int> durationPerRun(List<RunningSession> sessions) =>
       sessions.map((e) => (e.durationInSeconds / 60).round()).toList();
 
-  List<double> loadPerRun(List<RunningSession> sessions) =>
-      sessions.map((e) => e.trainingLoad).toList();
-
+  /// Average pace (min/km)
   double get averagePace {
     if (totalDistance == 0) return 0;
     return (totalDuration / 60) / totalDistance;
@@ -65,6 +51,7 @@ class WeeklyStats {
     return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 
+  /// Total duration formatted for UI
   String get formattedTotalDuration {
     final hours = totalDuration ~/ 3600;
     final minutes = (totalDuration % 3600) ~/ 60;
@@ -73,21 +60,5 @@ class WeeklyStats {
       return '${hours}h ${minutes}m';
     }
     return '${minutes}m';
-  }
-
-  String get fatigueLevel {
-    if (totalTrainingLoad > 700) return 'High';
-    if (totalTrainingLoad > 500) return 'Moderate';
-    return 'Low';
-  }
-
-  String get recommendation {
-    if (totalTrainingLoad > 700) {
-      return 'Rest day recommended';
-    }
-    if (totalTrainingLoad > 500) {
-      return 'Easy run recommended';
-    }
-    return 'You are ready for a hard run';
   }
 }

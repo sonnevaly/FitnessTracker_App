@@ -18,10 +18,14 @@ class SessionDetailDialog extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildRow('Date', _formatDate(session.date)),
-          _buildRow('Distance', '${session.distanceInKm.toStringAsFixed(2)} km'),
-          _buildRow('Duration', _formatDuration(session.durationInSeconds)),
+          _buildRow('Distance', session.formattedDistance),
+          _buildRow('Duration', session.formattedDuration),
+          _buildRow('Pace', '${session.formattedPace} /km'),
           _buildRow('RPE', session.rpe.toString()),
-          _buildRow('Training Load', session.trainingLoad.toStringAsFixed(0)),
+          _buildRow(
+            'Training Load',
+            session.trainingLoad.toStringAsFixed(0),
+          ),
         ],
       ),
       actions: [
@@ -40,16 +44,13 @@ class SessionDetailDialog extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text('$label:'),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(
+            value,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
         ],
       ),
     );
-  }
-
-  String _formatDuration(int seconds) {
-    int minutes = seconds ~/ 60;
-    int sec = seconds % 60;
-    return '$minutes:${sec.toString().padLeft(2, '0')}';
   }
 
   String _formatDate(DateTime date) {
