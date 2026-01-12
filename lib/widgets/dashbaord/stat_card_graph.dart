@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/app_decoration.dart';
 
 class StatCardWithGraph extends StatelessWidget {
   final String title;
@@ -18,17 +19,8 @@ class StatCardWithGraph extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
+      // ✅ CHANGED: Replaced BoxDecoration with AppDecorations.card
+      decoration: AppDecorations.card,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'app_colors.dart';
+import 'package:flutter/material.dart';
 
 class Formatters {
   static String distance(double km) {
@@ -30,12 +30,5 @@ class Formatters {
 
   static String date(DateTime date) {
     return '${date.day}/${date.month}/${date.year}';
-  }
-
-  static Color rpeColor(int rpe) {
-    if (rpe <= 3) return AppColors.success;
-    if (rpe <= 6) return AppColors.info;
-    if (rpe <= 8) return AppColors.warning;
-    return AppColors.error;
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/running_session.dart';
 import '../utils/formatters.dart';
-import '../utils/rpe_helper.dart';
+import '../utils/rpe_utils.dart';
 
 class SessionsList extends StatelessWidget {
   final List<RunningSession> sessions;
@@ -25,17 +25,16 @@ class SessionsList extends StatelessWidget {
         ),
       );
     }
-
     return ListView.builder(
       itemCount: sessions.length,
       itemBuilder: (context, index) {
         final session = sessions[index];
-
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: RPEHelper.color(session.rpe),
+              // ✅ CHANGED: RPEHelper → RpeUtils
+              backgroundColor: RpeUtils.getColor(session.rpe),
               child: Text(
                 session.rpe.toString(),
                 style: const TextStyle(color: Colors.white),

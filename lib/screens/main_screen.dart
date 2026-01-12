@@ -47,7 +47,7 @@ class _MainScreenState extends State<MainScreen> {
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
             blurRadius: 20,
-            offset: Offset(0, 10),
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -69,7 +69,7 @@ class _MainScreenState extends State<MainScreen> {
     return GestureDetector(
       onTap: () => _onItemTapped(index),
       child: AnimatedContainer(
-        duration: Duration(milliseconds: 200),
+        duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected ? Colors.white.withOpacity(0.15) : Colors.transparent,

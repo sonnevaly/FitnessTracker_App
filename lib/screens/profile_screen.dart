@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
-import '../services/database_service.dart';
-import '../models/running_session.dart';
+import '../models/weekly_stats.dart';
+import '../services/session_repository.dart';
+import '../utils/formatters.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -11,9 +12,10 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  int totalRuns = 0;
-  double totalDistance = 0.0;
-  String totalDuration = '0m';
+  WeeklyStats? lifetimeStats;
+  bool isLoading = false;
+
+  final SessionRepository _repository = SessionRepository();
 
   @override
   void initState() {
@@ -22,69 +24,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadStats() async {
-    final List<RunningSession> sessions =
-        await DatabaseService.instance.getAllSessions();
+    setState(() => isLoading = true);
 
-    int runs = sessions.length;
-    double distance = 0;
-    int durationSeconds = 0;
-
-    for (final s in sessions) {
-      distance += s.distanceInKm;
-      durationSeconds += s.durationInSeconds;
-    }
+    final sessions = await _repository.getAllSessions();
+    
+    final stats = WeeklyStats.fromSessions(sessions);
 
     setState(() {
-      totalRuns = runs;
-      totalDistance = distance;
-      totalDuration = _formatDuration(durationSeconds);
+      lifetimeStats = stats;
+      isLoading = false;
     });
   }
-
-  String _formatDuration(int seconds) {
-    final hours = seconds ~/ 3600;
-    final minutes = (seconds % 3600) ~/ 60;
-    return hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Profile',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w700,
+        child: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Profile',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    Center(
+                      child: CircleAvatar(
+                        radius: 48,
+                        backgroundColor: AppColors.primary,
+                        child: const Icon(
+                          Icons.person,
+                          color: Colors.white,
+                          size: 40,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    if (lifetimeStats != null) _buildStats(),
+                  ],
                 ),
               ),
-
-              const SizedBox(height: 32),
-
-              Center(
-                child: CircleAvatar(
-                  radius: 48,
-                  backgroundColor: AppColors.primary,
-                  child: const Icon(
-                    Icons.person,
-                    color: Colors.white,
-                    size: 40,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              _buildStats(),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -93,9 +83,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _StatItem('$totalRuns', 'Runs'),
-        _StatItem(totalDistance.toStringAsFixed(1), 'KM'),
-        _StatItem(totalDuration, 'Duration'),
+        _StatItem(
+          lifetimeStats!.numberOfRuns.toString(),
+          'Runs',
+        ),
+        _StatItem(
+          lifetimeStats!.totalDistance.toStringAsFixed(1),
+          'KM',
+        ),
+        _StatItem(
+          lifetimeStats!.formattedTotalDuration,
+          'Duration',
+        ),
       ],
     );
   }

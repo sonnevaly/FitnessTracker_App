@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
-import '../services/rpe_service.dart';
+import '../utils/rpe_utils.dart';
 
 class RPEDialog extends StatefulWidget {
   final Function(int) onSave;
@@ -16,8 +16,8 @@ class _RPEDialogState extends State<RPEDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final color = RpeService.color(_selectedRPE);
-    final label = RpeService.label(_selectedRPE);
+    final color = RpeUtils.getColor(_selectedRPE);
+    final label = RpeUtils.getLabel(_selectedRPE);
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -37,7 +37,7 @@ class _RPEDialogState extends State<RPEDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
+            const Text(
               'How hard was\nyour run?',
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -48,7 +48,7 @@ class _RPEDialogState extends State<RPEDialog> {
               ),
             ),
             const SizedBox(height: 8),
-            Text(
+            const Text(
               'Rate of Perceived Exertion',
               style: TextStyle(
                 fontSize: 14,
@@ -120,7 +120,7 @@ class _RPEDialogState extends State<RPEDialog> {
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                children: const [
                   Text('1 Easy', style: TextStyle(color: AppColors.textSecondary)),
                   Text('10 Max', style: TextStyle(color: AppColors.textSecondary)),
                 ],

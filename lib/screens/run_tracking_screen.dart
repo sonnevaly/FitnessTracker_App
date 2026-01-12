@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
 import '../utils/formatters.dart';
+import '../utils/app_decoration.dart';
 import '../widgets/rpe_dialog.dart';
 import '../models/running_session.dart';
 import '../services/session_repository.dart';
@@ -127,31 +128,22 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
         Container(
           width: 240,
           height: 240,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 30,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
+          // ✅ CHANGED: Use AppDecorations.circleShadow
+          decoration: AppDecorations.circleShadow,
         ),
         Container(
           width: 200,
           height: 200,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: _isRunning
-                ? (_isPaused
-                    ? const LinearGradient(
+          // ✅ CHANGED: Use AppDecorations.circleGradient
+          decoration: _isRunning
+              ? (_isPaused
+                  ? AppDecorations.circleGradient(
+                      const LinearGradient(
                         colors: [Color(0xFFFBBF24), Color(0xFFF59E0B)],
-                      )
-                    : AppColors.successGradient)
-                : AppColors.primaryGradient,
-          ),
+                      ),
+                    )
+                  : AppDecorations.circleGradient(AppColors.successGradient))
+              : AppDecorations.circleGradient(AppColors.primaryGradient),
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -212,7 +204,8 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(20),
-        decoration: _cardDecoration(),
+        // ✅ CHANGED: Use AppDecorations.card
+        decoration: AppDecorations.card,
         child: Column(
           children: [
             Icon(icon, color: AppColors.textSecondary),
@@ -241,7 +234,8 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
       height: 56,
       child: ElevatedButton(
         onPressed: _startRun,
-        style: _darkButtonStyle(),
+        // ✅ CHANGED: Use AppDecorations.elevatedButtonDark
+        style: AppDecorations.elevatedButtonDark,
         child: const Text('START RUN'),
       ),
     );
@@ -253,7 +247,8 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
         Expanded(
           child: ElevatedButton(
             onPressed: _isPaused ? _resumeRun : _pauseRun,
-            style: _lightButtonStyle(),
+            // ✅ CHANGED: Use AppDecorations.elevatedButtonLight
+            style: AppDecorations.elevatedButtonLight,
             child: Text(_isPaused ? 'RESUME' : 'PAUSE'),
           ),
         ),
@@ -261,7 +256,8 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
         Expanded(
           child: ElevatedButton(
             onPressed: _showStopDialog,
-            style: _darkButtonStyle(),
+            // ✅ CHANGED: Use AppDecorations.elevatedButtonDark
+            style: AppDecorations.elevatedButtonDark,
             child: const Text('STOP'),
           ),
         ),
@@ -281,35 +277,4 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
       ),
     );
   }
-
-  BoxDecoration _cardDecoration() => BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      );
-
-  ButtonStyle _darkButtonStyle() => ElevatedButton.styleFrom(
-        backgroundColor: AppColors.cardDark,
-        foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        elevation: 0,
-      );
-
-  ButtonStyle _lightButtonStyle() => ElevatedButton.styleFrom(
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.textDark,
-        side: BorderSide(color: Colors.grey.shade200),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        elevation: 0,
-      );
 }
